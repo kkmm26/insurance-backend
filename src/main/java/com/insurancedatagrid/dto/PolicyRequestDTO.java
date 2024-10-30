@@ -2,11 +2,16 @@ package com.insurancedatagrid.dto;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PolicyRequestDTO {
+    private int id;
     // Client fields
     private String clientName;
     private Integer clientPhone;

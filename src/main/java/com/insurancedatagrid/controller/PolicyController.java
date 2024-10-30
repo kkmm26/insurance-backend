@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/policies")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 public class PolicyController {
 
     private final ClientService clientService;
@@ -27,6 +27,7 @@ public class PolicyController {
     public List<PolicyRequestDTO> findAllPolicies() {
         return policyService.getAllPolicies().stream()
                 .<PolicyRequestDTO>map(policy -> PolicyRequestDTO.builder()
+                        .id(policy.getPolicyId())
                         .clientName(policy.getClient().getClientName())
                         .clientPhone(policy.getClient().getClientPhone())
                         .clientContact(policy.getClient().getClientContact())
@@ -75,5 +76,42 @@ public class PolicyController {
         policy = policyService.savePolicy(policy);
         
         return ResponseEntity.ok(policy);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PolicyEntity> updatePolicy(@PathVariable int id, @RequestBody PolicyRequestDTO policyRequest) {
+        PolicyEntity existingPolicy = policyService.getPolicyById(id);
+
+        ClientEntity client = ClientEntity.builder()
+                .clientName(policyRequest.getClientName())
+                .clientPhone(policyRequest.getClientPhone())
+                .clientContact(policyRequest.getClientContact())
+                .build();
+        
+        client = clientService.findOrCreateClient(client);
+        
+        existingPolicy.setClient(client);
+        existingPolicy.setPolicyType(policyRequest.getPolicyType());
+        existingPolicy.setCompanyName(policyRequest.getCompanyName());
+        existingPolicy.setPolicyNumber(policyRequest.getPolicyNumber());
+        existingPolicy.setPolicyStatus(policyRequest.getPolicyStatus());
+        existingPolicy.setSumInsured(policyRequest.getSumInsured());
+        existingPolicy.setPremiumAmount(policyRequest.getPremiumAmount());
+        existingPolicy.setStartDate(policyRequest.getStartDate());
+        existingPolicy.setExpiryDate(policyRequest.getExpiryDate());
+        existingPolicy.setCommissionStatus(policyRequest.getCommissionStatus());
+        existingPolicy.setCommissionAmount(policyRequest.getCommissionAmount());
+        existingPolicy.setCommissionRate(policyRequest.getCommissionRate());
+        existingPolicy.setRemarks(policyRequest.getRemarks());
+        
+        PolicyEntity updatedPolicy = policyService.savePolicy(existingPolicy);
+        return ResponseEntity.ok(updatedPolicy);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePolicy(@PathVariable int id) {
+        PolicyEntity existingPolicy = policyService.getPolicyById(id);
+        policyService.deletePolicy(existingPolicy);
+        return ResponseEntity.noContent().build();
     }
 }
